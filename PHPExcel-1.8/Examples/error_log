@@ -1,0 +1,2 @@
+[23-May-2017 21:09:59 Europe/London] PHP Warning:  require_once(../Build/PHPExcel.phar): failed to open stream: No such file or directory in /home/ingworlds/public_html/proyecto/sisconvi-production/PHPExcel-1.8/Examples/01pharSimple.php on line 37
+[23-May-2017 21:09:59 Europe/London] PHP Fatal error:  require_once(): Failed opening required '../Build/PHPExcel.phar' (include_path='.:/opt/php56/lib/php') in /home/ingworlds/public_html/proyecto/sisconvi-production/PHPExcel-1.8/Examples/01pharSimple.php on line 37

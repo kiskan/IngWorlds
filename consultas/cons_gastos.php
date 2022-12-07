@@ -1,0 +1,188 @@
+<?php 
+
+	include('coneccion.php');
+
+	if(isset($_GET['totales'])){
+
+		$sprod_id = $_GET['sprod_id'];
+		$sprod_codigosap = $_GET['sprod_codigosap'];
+		$cotcom_hes = $_GET['cotcom_hes'];
+		$sprod_estado = $_GET['sprod_estado'];
+		$solicitante = $_GET['solicitante'];
+		$per_agno = $_GET['per_agno'];		
+		$sem_num = $_GET['sem_num'];	
+		$sprod_dia = $_GET['sprod_dia'];	
+		
+		$UNDVIV_ID = $_GET['UNDVIV_ID'];
+		$sprod_tipocompra = $_GET['sprod_tipocompra'];
+		$sprod_prioridad = $_GET['sprod_prioridad'];		
+		$sprod_tipomant = $_GET['sprod_tipomant'];
+		$catprod_id = $_GET['catprod_id'];	
+		$prod_cod = $_GET['prod_cod'];
+		$cc_id = $_GET['cc_id'];
+
+/*
+				{ data:'PER_AGNO'},
+				{ data:'SEM_NUM'},
+				{ data:'SPROD_DIA'},
+				
+				{ data:'SPROD_ID'},
+				{ data:'COTCOM_CODIGOSAP'},
+				{ data:'SPROD_ESTADO'},
+				{ data:'SOLICITANTE'},
+				
+				{ data:'CATPROD_NOMBRE'},
+				{ data:'PROD_SERV'},
+				{ data:'CC_NOMBRE'},
+				
+				{ data:'SPRODR_ESTADO'},
+				{ data:'SPRODD_CANT'},
+				{ data:'COTCOM_CANTIDAD'},
+				
+				{ data:'COTCOM_PRECIO'},
+				{ data:'TOTAL_COSTO'},
+				
+				{ data:'COTCOM_ACORDADO'},
+				{ data:'COTCOM_PENDIENTE'},
+				{ data:'COTCOM_AVANCE'},
+				{ data:'COTCOM_HES'},
+				
+				{ data:'UNDVIV_NOMBRE'},						
+				{ data:'SPROD_TIPOCOMPRA'},
+				{ data:'SPROD_PRIORIDAD'},
+				{ data:'SPROD_TIPOMANT'},
+				
+				{ data:'SPROD_MOTIVO'},
+				{ data:'SPROD_COMENCOTIZ'},
+				{ data:'SPROD_COMENCOMPRA'}			
+				
+*/	
+		
+		$sql = "SELECT SEM.PER_AGNO, SEM.SEM_NUM, DATE_FORMAT(SPROD.SPROD_DIA,'%d-%m-%Y') as SPROD_DIA, SPROD.SPROD_ID,/* COM.COTCOM_CODIGOSAP,*/ SPROD.SPROD_ESTADO,US1.USR_NOMBRE AS SOLICITANTE, CP.CATPROD_NOMBRE, (CASE WHEN SPROD.SPROD_TIPOCOMPRA = 'COMPRA MATERIAL' THEN PROD.PROD_NOMBRE WHEN SPROD.SPROD_TIPOCOMPRA = 'PRESTACIÓN SERVICIO' THEN SD.SPRODD_SERVICIO ELSE '' END) PROD_SERV, CC.CC_NOMBRE, SD.SPRODR_ESTADO, 
+		
+		/*SD.SPRODD_CANT, */
+		COT.COTCOM_CANTIDAD SPRODD_CANT, /* CANTIDAD COTIZADA*/
+		
+		/*SUM(COM.COTCOM_CANTIDAD) COTCOM_CANTIDAD, CANTIDAD AVANZADA*/
+		(CASE WHEN SPROD.SPROD_TIPOCOMPRA = 'COMPRA MATERIAL' THEN SUM(COM.COTCOM_CANTIDAD) WHEN SPROD.SPROD_TIPOCOMPRA = 'PRESTACIÓN SERVICIO' THEN COM.COTCOM_CANTIDAD ELSE '' END)COTCOM_CANTIDAD,
+		
+		COT.COTCOM_PRECIO, /*PRECIO*/
+		/*
+		(CASE WHEN SPROD.SPROD_TIPOCOMPRA = 'COMPRA MATERIAL' THEN (select c.COTCOM_PRECIO*c.COTCOM_CANTIDAD from COTIZ_COMPRA c where c.sprodd_id = COM.SPRODD_ID and c.cotcom_provsel = 'S')		
+		WHEN SPROD.SPROD_TIPOCOMPRA = 'PRESTACIÓN SERVICIO' THEN COM.COTCOM_PRECIO ELSE 0 END) AS TOTAL_COSTO,  COSTO CONTRATADO*/
+		
+		(CASE WHEN SPROD.SPROD_TIPOCOMPRA = 'COMPRA MATERIAL' THEN COT.COTCOM_ACORDADO
+		WHEN SPROD.SPROD_TIPOCOMPRA = 'PRESTACIÓN SERVICIO' THEN COM.COTCOM_PRECIO ELSE 0 END) AS TOTAL_COSTO,		
+		
+		/*COTCOM_ACORDADO AS COT_AVANZADO, */
+		 /*
+		(CASE WHEN SPROD.SPROD_TIPOCOMPRA = 'COMPRA MATERIAL' THEN (COM.COTCOM_PRECIO*SUM(COM.COTCOM_CANTIDAD))		
+		WHEN SPROD.SPROD_TIPOCOMPRA = 'PRESTACIÓN SERVICIO' THEN COM.COTCOM_PRECIO ELSE 0 END) AS TOTAL_COSTO, COSTO AVANZADO*/
+		/*
+		(CASE WHEN SPROD.SPROD_TIPOCOMPRA = 'COMPRA MATERIAL' THEN (select c.COTCOM_PRECIO*c.COTCOM_CANTIDAD from COTIZ_COMPRA c where c.sprodd_id = COM.SPRODD_ID and c.cotcom_provsel = 'S')		
+		WHEN SPROD.SPROD_TIPOCOMPRA = 'PRESTACIÓN SERVICIO' THEN COM.COTCOM_PRECIO ELSE 0 END) -
+		(CASE WHEN SPROD.SPROD_TIPOCOMPRA = 'COMPRA MATERIAL' THEN (COM.COTCOM_PRECIO*SUM(COM.COTCOM_CANTIDAD))		
+		WHEN SPROD.SPROD_TIPOCOMPRA = 'PRESTACIÓN SERVICIO' THEN COM.COTCOM_PRECIO ELSE 0 END)		
+		AS COTCOM_PENDIENTE, COSTO PENDIENTE*/
+		
+		(CASE WHEN SPROD.SPROD_TIPOCOMPRA = 'COMPRA MATERIAL' THEN '' WHEN SPROD.SPROD_TIPOCOMPRA = 'PRESTACIÓN SERVICIO' THEN SUM(COM.COTCOM_AVANCE) ELSE '' END)COTCOM_AVANCE, 
+		
+		/*COM.COTCOM_HES,*/ UNIDAD_VIVEROS.UNDVIV_NOMBRE, SPROD.SPROD_TIPOCOMPRA, SPROD.SPROD_PRIORIDAD, SPROD.SPROD_TIPOMANT, SPROD.SPROD_MOTIVO, SPROD.SPROD_COMENCOTIZ,
+
+		SPROD.SPROD_COMENCOMPRA,SD.SPRODD_CODIGOSAP
+
+				FROM SOLICITUD_PRODUCTOS AS SPROD 
+				JOIN SEMANAS AS SEM ON SPROD.PER_AGNO = SEM.PER_AGNO AND SPROD.SEM_NUM = SEM.SEM_NUM
+				JOIN UNIDAD_VIVEROS ON UNIDAD_VIVEROS.UNDVIV_ID = SPROD.UNDVIV_ID
+				JOIN USUARIOS AS US1 ON US1.USR_ID = SPROD.USR_ID_SOLIC
+				JOIN SPROD_DETALLE SD ON SD.SPROD_ID = SPROD.SPROD_ID 
+				LEFT JOIN PRODUCTOS PROD ON PROD.PROD_COD = SD.PROD_COD
+				LEFT JOIN CATEGORIA_PRODUCTO CP ON CP.CATPROD_ID = PROD.CATPROD_ID
+				LEFT JOIN COTIZ_COMPRA COM ON COM.SPRODD_ID = SD.SPRODD_ID AND COM.COTCOM_TIPO = 'COMPRA'
+				LEFT JOIN COTIZ_COMPRA COT ON COT.SPRODD_ID = SD.SPRODD_ID AND COT.COTCOM_TIPO = 'COTIZACION' and COT.cotcom_provsel = 'S'
+				LEFT JOIN CUENTA_CONTABLE CC ON CC.CC_ID = SD.CC_ID
+				WHERE
+				 SPROD_TIPOSOL = 'SC' AND
+				(SPROD.SPROD_ID = '$sprod_id' or '$sprod_id' = '') AND
+				(SD.SPRODD_CODIGOSAP = '$sprod_codigosap' or '$sprod_codigosap' = '') AND
+				/*(COM.COTCOM_HES = '$cotcom_hes' or '$cotcom_hes' = '') AND*/
+				(SPROD.SPROD_ESTADO = '$sprod_estado' or '$sprod_estado' = '') AND
+				(SPROD.USR_ID_SOLIC = '$solicitante' or '$solicitante' = '') AND
+				(SEM.PER_AGNO = '$per_agno' or '$per_agno' = '') AND
+				(SEM.SEM_NUM = '$sem_num' or '$sem_num' = '') AND	
+				(SPROD.SPROD_DIA = '$sprod_dia' or '$sprod_dia' = '') AND
+				
+				(SPROD.UNDVIV_ID = '$UNDVIV_ID' or '$UNDVIV_ID' = '') AND
+				(SPROD.SPROD_TIPOCOMPRA = '$sprod_tipocompra' or '$sprod_tipocompra' = '') AND
+				(SPROD.SPROD_PRIORIDAD = '$sprod_prioridad' or '$sprod_prioridad' = '') AND
+				(SPROD.SPROD_TIPOMANT = '$sprod_tipomant' or '$sprod_tipomant' = '') AND
+				(CP.CATPROD_ID = '$catprod_id' or '$catprod_id' = '') AND				
+				(PROD.PROD_COD = '$prod_cod' or '$prod_cod' = '') AND
+				(SD.CC_ID = '$cc_id' or '$cc_id' = '') 
+				
+				GROUP BY
+SEM.PER_AGNO, SEM.SEM_NUM, DATE_FORMAT(SPROD.SPROD_DIA,'%d-%m-%Y'), SPROD.SPROD_ID, /*COM.COTCOM_CODIGOSAP,*/ SPROD.SPROD_ESTADO,US1.USR_NOMBRE, CP.CATPROD_NOMBRE, (CASE WHEN SPROD.SPROD_TIPOCOMPRA = 'COMPRA MATERIAL' THEN PROD.PROD_NOMBRE WHEN SPROD.SPROD_TIPOCOMPRA = 'PRESTACIÓN SERVICIO' THEN SD.SPRODD_SERVICIO ELSE '' END), CC.CC_NOMBRE, SD.SPRODR_ESTADO, COT.COTCOM_CANTIDAD, COM.COTCOM_PRECIO,
+(CASE WHEN SPROD.SPROD_TIPOCOMPRA = 'COMPRA MATERIAL' THEN COT.COTCOM_ACORDADO
+		WHEN SPROD.SPROD_TIPOCOMPRA = 'PRESTACIÓN SERVICIO' THEN COM.COTCOM_PRECIO ELSE 0 END),				
+/*COM.COTCOM_AVANCE, COM.COTCOM_HES,*/ UNIDAD_VIVEROS.UNDVIV_NOMBRE, SPROD.SPROD_TIPOCOMPRA, SPROD.SPROD_PRIORIDAD, SPROD.SPROD_TIPOMANT, SPROD.SPROD_MOTIVO, SPROD.SPROD_COMENCOTIZ,SPROD.SPROD_COMENCOMPRA,SD.SPRODD_CODIGOSAP								
+				ORDER BY SPROD.SPROD_DIA DESC, SPROD.SPROD_ID";			
+			
+				
+		$resultset = mysqli_query($link, $sql) or die("database error:". mysqli_error($link));
+		$data = array();
+		
+		while( $rows = mysqli_fetch_assoc($resultset) ) {
+			
+			$COT_AVANZADO = '';
+			if(!empty($rows[COTCOM_CANTIDAD]) and !empty($rows[COTCOM_PRECIO])) $COT_AVANZADO = $rows[COTCOM_CANTIDAD] * $rows[COTCOM_PRECIO];
+			
+			$PENDIENTE = $rows[TOTAL_COSTO];
+			if(!empty($COT_AVANZADO)) $PENDIENTE = $PENDIENTE - $COT_AVANZADO;
+			
+			
+			$data[] = 
+			Array
+			(
+				'PER_AGNO' => $rows[PER_AGNO],
+				'SEM_NUM' => $rows[SEM_NUM],
+				'SPROD_DIA' => $rows[SPROD_DIA],				
+				'SPROD_ID' => $rows[SPROD_ID],											
+				'SPRODD_CODIGOSAP' => $rows[SPRODD_CODIGOSAP],	
+				'SPROD_ESTADO' => $rows[SPROD_ESTADO],
+				'SOLICITANTE' => $rows[SOLICITANTE],
+				'CATPROD_NOMBRE' => $rows[CATPROD_NOMBRE],				
+				'PROD_SERV' => $rows[PROD_SERV],											
+				'CC_NOMBRE' => $rows[CC_NOMBRE],				
+				'SPRODR_ESTADO' => $rows[SPRODR_ESTADO],
+				'SPRODD_CANT' => $rows[SPRODD_CANT],
+				'COTCOM_CANTIDAD' => $rows[COTCOM_CANTIDAD],				
+				'COTCOM_PRECIO' => $rows[COTCOM_PRECIO],											
+				'TOTAL_COSTO' => $rows[TOTAL_COSTO],		
+				'COT_AVANZADO' => $COT_AVANZADO , /**/
+				'COTCOM_PENDIENTE' => $PENDIENTE, /**/
+				'COTCOM_AVANCE' => $rows[COTCOM_AVANCE],				
+				/*'COTCOM_HES' => $rows[COTCOM_HES],*/											
+				'UNDVIV_NOMBRE' => $rows[UNDVIV_NOMBRE],				
+				'SPROD_TIPOCOMPRA' => $rows[SPROD_TIPOCOMPRA],
+				'SPROD_PRIORIDAD' => $rows[SPROD_PRIORIDAD],
+				'SPROD_TIPOMANT' => $rows[SPROD_TIPOMANT],				
+				'SPROD_MOTIVO' => $rows[SPROD_MOTIVO],											
+				'SPROD_COMENCOTIZ' => $rows[SPROD_COMENCOTIZ],
+				'SPROD_COMENCOMPRA' => $rows[SPROD_COMENCOMPRA]
+			);
+		}	
+		
+
+		$resp = array(
+		"sEcho" => 1,
+		"iTotalRecords" => count($data),
+		"iTotalDisplayRecords" => count($data),
+		"aaData"=>$data);
+		
+		mysqli_close($link);
+		echo json_encode($resp);
+			
+	}		
+	
+	
+?>

@@ -1,0 +1,68 @@
+
+
+#wrap {
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  /* Negative indent footer by its height */
+  margin: 0 auto -140px;
+  /* Pad bottom by footer height */
+  padding: 0 0 140px;
+}
+
+#footer {
+	height: 140px;
+    background-color:#000;
+    color:#fff;
+}
+
+.container {
+  width: auto;
+  max-width: 1000px;
+  padding: 0 15px;
+}
+
+.error{color: red; font-size: 12px;}
+
+.msg_cuenta{font-size: 12px;}
+
+.logo { 
+	padding:23px; 
+	float:left;
+}
+
+.header_login {
+  background-color: #008ed0;
+  color: #fff;
+  font-family: 'Droid Sans', Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  text-align: center;
+  padding: 16px 0;
+}
+
+.cuadro_login{
+	border: solid 1px #e9e9e9;
+}
+
+.formulario_login {
+  width: 220px;
+  margin: 43px auto 43px auto;
+  height: auto;
+  display: block;
+  overflow: hidden;
+}
+
+label.texto {font-size:12px; color:#777777;}
+label.error{color: red; font-size: 12px;}
+
+.thumbnail {
+    border: 0 none;
+    box-shadow: none;
+}
+
+input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0px 1000px white inset;
+}
+
+
+
